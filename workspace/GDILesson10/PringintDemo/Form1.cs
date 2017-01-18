@@ -15,21 +15,26 @@ namespace PringintDemo
 {
     public partial class Form1 : Form
     {
-        private string text =
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n";
-
-        private int pages = 1;
+        private string _text;
+        private PrintDocument _printDocument;
 
         public Form1()
         {
+            
             InitializeComponent();
-            richTextBox1.Text = text;
+            if (File.Exists("lorem.txt"))
+            {
+                richTextBox1.LoadFile("lorem.txt", 
+                                       RichTextBoxStreamType.PlainText);
+            }
+            _printDocument = new PrintDocument();
+            _printDocument.PrintPage += PrintDocument_PrintPage;
+            _printDocument.BeginPrint += PrintDocument_BeginPrint;
         }
 
         private void fontToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FontDialog fontDialog = new FontDialog();
-            fontDialog.Font = richTextBox1.Font;
+            FontDialog fontDialog = new FontDialog {Font = richTextBox1.Font};
             if (fontDialog.ShowDialog() == DialogResult.OK)
             {
                 richTextBox1.Font = fontDialog.Font;
@@ -38,30 +43,63 @@ namespace PringintDemo
 
         private void printToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            PrintDocument printDocument = new PrintDocument();
-            printDocument.PrintPage += PrintDocument_PrintPage;
-            printDocument.Print();
+            var printDialog = new PrintDialog {Document = _printDocument};
+
+            if (printDialog.ShowDialog() == DialogResult.OK)
+            {
+                _printDocument.Print();
+            }
+        }
+
+        private void PrintDocument_BeginPrint(object sender, PrintEventArgs e)
+        {
+            _text = richTextBox1.Text;
         }
 
         private void PrintDocument_PrintPage(object sender, PrintPageEventArgs e)
         {
-            Graphics g = e.Graphics;
+            var g = e.Graphics;
             
-            string msg = $"Hello Printer. Page {pages}";
-            Font font = richTextBox1.Font; //new Font("Times New Roman", 14, FontStyle.Bold|FontStyle.Italic);
-            g.DrawString(text, font, Brushes.Black, e.MarginBounds);
+            var font = richTextBox1.Font;
+
+            // получаем кол-во символов, которые вмещаются в область печати
+            int characterFitted;
+            // сткок текста на печати для текущей страницы
+            int linesFitted;
+            var format = new StringFormat(StringFormatFlags.LineLimit);
+            g.MeasureString(_text, 
+                            font, 
+                            e.MarginBounds.Size, 
+                            format, 
+                            out characterFitted, out linesFitted);
             
-            e.HasMorePages = (pages++ != 1);
+            g.DrawRectangle(Pens.Black, e.MarginBounds);
+
+            g.DrawString(_text.Substring(0, characterFitted), font, Brushes.Black, e.MarginBounds);
+            _text = _text.Substring(characterFitted); // не напечатанный текст
+            e.HasMorePages = _text.Length > 0;       // печатать на следующей странице если есть что печатать
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Text files|*.txt|Rtf files|*.rtf|All files|*.*";
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Text files|*.txt|Rtf files|*.rtf|All files|*.*"
+            };
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 richTextBox1.LoadFile(openFileDialog.FileName);
-                text = richTextBox1.Text;
+                _text = richTextBox1.Text;
+            }
+        }
+
+        private void pageSetupToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            PageSetupDialog pageSetup = new PageSetupDialog();
+            pageSetup.Document = _printDocument;
+            if (pageSetup.ShowDialog() == DialogResult.OK)
+            {
+                _printDocument.DefaultPageSettings = pageSetup.PageSettings;
             }
         }
     }
