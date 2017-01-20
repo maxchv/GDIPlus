@@ -102,5 +102,17 @@ namespace PringintDemo
                 _printDocument.DefaultPageSettings = pageSetup.PageSettings;
             }
         }
+
+        private void printPreviewToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Предварительный просмотр документа перед печатью через стандартное диалоговое окно
+            //PrintPreviewDialog previewDialog = new PrintPreviewDialog();
+            //previewDialog.Document = _printDocument;
+            //previewDialog.ShowDialog();
+
+            PreviewDialog previewDialog = new PreviewDialog();
+            previewDialog.PrintPreviewControl.Document = _printDocument;
+            previewDialog.ShowDialog();
+        }
     }
 }
