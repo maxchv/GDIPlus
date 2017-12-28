@@ -1,0 +1,6 @@
+видео: https://youtu.be/fJtWoYDsY-Y
+
+Написать игру Scratch and Guess в котором пользователь стирает "защитный" слой, за которым скрывается изображение.
+Задача игрока: угадать что изображено на картинке.
+Пример приложения на android: https://play.google.com/store/apps/details?id=com.etzuk.scratchpic&hl=ru
+
