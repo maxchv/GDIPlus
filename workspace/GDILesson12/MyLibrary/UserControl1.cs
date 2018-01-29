@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Drawing.Drawing2D;
 
 namespace MyLibrary
 {
@@ -27,6 +28,11 @@ namespace MyLibrary
             StringFormat format = new StringFormat(StringFormatFlags.FitBlackBox);
             format.Alignment = StringAlignment.Center;
             format.LineAlignment = StringAlignment.Center;
+
+            // RoundButton
+            GraphicsPath path = new GraphicsPath();
+            path.AddEllipse(ClientRectangle);
+            Region = new Region(path);
 
             g.FillRectangle(new SolidBrush(DefaultBackColor), ClientRectangle);
             g.FillEllipse(backColor, ClientRectangle);
